@@ -1,0 +1,29 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+*/.DS_Store
+
+# ignore Python cache
+__pycache__
+.ipynb_checkpoints
+
+# ignore files in Data subdirectories
+Data/*/*
+
+# unignore README files with .md extensions
+!Data/*/README.md
+
+# ignore files in Results subdirectories
+Results/*/*
+
+# unignore README files with .md extensions
+!Results/*/README.md
+
+# ignore lightning logs
+**/lightning_logs/
+
+# ignore virtual environment
+# to activate, run source synthesis/bin/activate
+synthesis_env/
