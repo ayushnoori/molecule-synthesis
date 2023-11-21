@@ -18,6 +18,36 @@ Please also see [theochem/B3DB](https://github.com/theochem/B3DB) and [Issue #17
 
 Finally, we will also evaluate the performance of our method at a program synthesis task – *e.g.*, Karel programs, as in Bunel *et al.* (2018) – where instead of combining molecular fragments from the Enamine REAL space, we will successively combine primitives from a program bank to form higher-order programs (see, for example, [this demonstration](https://huggingface.co/spaces/ayushnoori/program-synthesis)).
 
+## Installation
+
+To install the code, please clone this repository with the following:
+
+```bash
+git clone git@github.com:ayushnoori/molecule-synthesis.git
+cd molecule-synthesis
+```
+
+Create a virtual environment.
+
+```
+conda deactivate
+pip install virtualenv
+virtualenv synthesis_env
+source synthesis_env/bin/activate
+```
+
+Install necessary packages specified in `requirements.txt`.
+
+```bash
+pip install -r requirements.txt
+```
+
+To save the specific versions of each package required, run the following:
+
+```bash
+pip freeze > requirements-frozen.txt
+```
+
 ## Dependencies
 
 To run the code, please install:

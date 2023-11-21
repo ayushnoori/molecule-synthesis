@@ -1,0 +1,20 @@
+hyperopt  # for chemprop
+ipdb  # for debugging
+ipython  # for debugging
+matplotlib
+numpy
+pandas
+pip
+torch
+torchvision
+torchaudio  # for chemprop
+rdkit
+scikit-learn
+scipy
+tensorboardX  # for chemprop
+tqdm
+umap-learn  # for chem_utils
+typed-argument-parser
+git+https://github.com/bp-kelley/descriptastorus
+git+https://github.com/swansonk14/chem_utils
+git+https://github.com/chemprop/chemprop
