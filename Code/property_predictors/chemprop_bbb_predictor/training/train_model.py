@@ -14,6 +14,7 @@ from sklearn.neural_network import MLPClassifier, MLPRegressor
 from tap import Tap
 from tqdm import trange
 
+# ! The name of the `chem_utils` module is changed to `chemfunc` in Kyle's repository.
 from chemfunc.molecular_fingerprints import compute_fingerprints
 from chemprop.args import TrainArgs
 from chemprop.data import MoleculeDataLoader, MoleculeDatapoint, MoleculeDataset

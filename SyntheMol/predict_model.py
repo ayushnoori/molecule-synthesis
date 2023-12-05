@@ -11,7 +11,7 @@ from sklearn.neural_network import MLPClassifier, MLPRegressor
 from tap import Tap
 from tqdm import tqdm
 
-from chem_utils.molecular_fingerprints import compute_fingerprints
+from chemfunc.molecular_fingerprints import compute_fingerprints
 from chemprop.utils import load_checkpoint
 
 from train_model import build_chemprop_data_loader, chemprop_predict, sklearn_predict
