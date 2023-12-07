@@ -142,6 +142,7 @@ class TreeNode:
         :param scoring_fn: A function that takes as input a SMILES representing a molecule and returns a score.
         :return: The score of the fragments.
         """
+        # ! Ask Kyle what he means by this
         # TODO: change this!!! to weight the fragments differently
         return sum(scoring_fn(fragment) for fragment in fragments) / len(fragments) if len(fragments) > 0 else 0.0
 
@@ -594,6 +595,8 @@ def save_molecules(
     )
     data.to_csv(save_path, index=False)
 
+# ! Modify this to use multiple models
+# TODO TODO TODO Modify this to use multiple models
 def create_model_scoring_fn(model_path: Path,
                             model_type: str,
                             fingerprint_type: Optional[str],
