@@ -3,10 +3,10 @@ from pathlib import Path
 import scikitplot as skplt
 import matplotlib.pyplot as plt
 import pandas as pd
-import metriculous
 import numpy as np
 
 N_CROSS_VALIDATION_MODELS = 10
+
 base_path = Path("./Data/property_predictors/chemprop_bbb_predictor/")
 
 prediction_paths = [

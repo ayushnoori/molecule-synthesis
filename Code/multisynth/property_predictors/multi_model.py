@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, TypeVar, cast, Union
+from typing import Optional, TypeVar, cast, Union, Any
 from pathlib import Path
 
 from tdc.single_pred.single_pred_dataset import DataLoader as TdcDataLoader
@@ -151,11 +151,12 @@ class MultiModel:
             )
             augmented_model.model.train(train, val, test)
 
-    def predict(self, smiles_strings: list[str]) -> dict[str, float]:
+    def predict(self, smiles_strings: list[str], fingerprint: Optional[Any]=None) -> dict[str, float]:
         """
         Predict the properties of a list of compounds.
 
         :param smiles_strings: A list of SMILES strings.
+        :param fingerprint: A fingerprint object. If None, the fingerprint will be calculated using the RDKit library based on the smiles.
 
         :return: A dictionary with the predicted properties. The key is the name of the .
         """

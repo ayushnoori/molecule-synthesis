@@ -1,6 +1,5 @@
 from .multi_model import MultiModel
 
-
 class SynthesisGuider:
     multi_models: list[MultiModel] = []
 
