@@ -142,6 +142,9 @@ class MultiModel:
                 print(
                     f"Model [{i}/{len(self.augmented_models)}] '{augmented_model.name}' does not have a dataloader. Skipped."
                 )
+            print(
+                f'========== Begining Training of "{augmented_model.name}" Model =========='
+            )
             X, y = augmented_model.dataloader.get_data(format="DeepPurpose")
             train, val, test = DeepPurposeUtils.data_process(
                 X_drug=X,
@@ -151,7 +154,9 @@ class MultiModel:
             )
             augmented_model.model.train(train, val, test)
 
-    def predict(self, smiles_strings: list[str], fingerprint: Optional[Any]=None) -> dict[str, float]:
+    def predict(
+        self, smiles_strings: list[str], fingerprint: Optional[Any] = None
+    ) -> dict[str, float]:
         """
         Predict the properties of a list of compounds.
 

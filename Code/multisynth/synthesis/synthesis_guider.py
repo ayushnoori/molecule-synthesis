@@ -1,4 +1,4 @@
-from .multi_model import MultiModel
+from ..property_predictors.multi_model import MultiModel
 
 class SynthesisGuider:
     multi_models: list[MultiModel] = []
