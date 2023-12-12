@@ -15,16 +15,11 @@ on_remote = (home_variable == "/home/an252")
 
 # define base project directory based on whether on O2 or not
 if on_remote:
-    PROJECT_DIR = Path('/n/data1/hms/dbmi/zitnik/lab/users/an252/NeuroKG/neuroKG')
+    PROJECT_DIR = Path('')
 else:
-    PROJECT_DIR = Path('/Users/an583/Library/CloudStorage/OneDrive-Personal/Research/Zitnik Lab/NeuroKG/neuroKG')
+    PROJECT_DIR = Path('/Users/an583/Library/CloudStorage/OneDrive-Personal/Academic/College/Junior Year/Fall Term/COMPSCI 252R/molecule-synthesis')
 
 # define project configuration variables
 DATA_DIR = PROJECT_DIR / 'Data'
-KG_DIR = DATA_DIR / 'NeuroKG' / '4_final_KG'
 RESULTS_DIR = PROJECT_DIR / 'Results'
 SEED = 42
-
-# CZ CELLxGENE Census dataset variables
-CELLXGENE_DATASET = Path('/n/data1/hms/dbmi/zitnik/lab/datasets/2023-05-CELLxGENE')
-CELLXGENE_DIR = DATA_DIR / 'CELLxGENE'

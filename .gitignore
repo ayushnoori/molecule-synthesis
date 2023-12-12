@@ -10,12 +10,14 @@ __pycache__
 .ipynb_checkpoints
 
 # ignore files in Data subdirectories
+Data/*
 Data/*/*
 
 # unignore README files with .md extensions
 !Data/*/README.md
 
 # ignore files in Results subdirectories
+Results/*
 Results/*/*
 
 # unignore README files with .md extensions
