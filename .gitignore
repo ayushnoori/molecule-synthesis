@@ -15,6 +15,8 @@ Data/*/*
 
 # unignore README files with .md extensions
 !Data/*/README.md
+!Data/synthesis_data
+# !Data/synthesis_data/*
 
 # ignore files in Results subdirectories
 Results/*
