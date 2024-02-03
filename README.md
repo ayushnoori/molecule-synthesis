@@ -1,4 +1,4 @@
-# Multi-Objective Generative AI for Designing Novel Brain-Targeting Small Molecules
+# Multi-objective generative AI for designing novel brain-targeting small molecules
 
 ## Project Summary
 
