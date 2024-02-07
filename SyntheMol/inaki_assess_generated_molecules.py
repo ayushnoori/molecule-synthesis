@@ -29,7 +29,12 @@ class Args(Tap):
         self.save_dir.mkdir(parents=True, exist_ok=True)
 
 
-def plot_scores(scores: list[float], save_dir: Path, score_name: str = "score") -> None:
+def plot_scores(
+    scores: list[float],
+    save_dir: Path,
+    score_name: str = "score",
+    score_color: Optional[str] = "#CDE0F6",
+) -> None:
     """Plot score distribution.
 
     :param scores: A list of scores.
@@ -37,12 +42,39 @@ def plot_scores(scores: list[float], save_dir: Path, score_name: str = "score") 
     :param score_name: The name of the score.
     """
     # Plot score distribution
+    # create a figure and axis
     plt.clf()
-    plt.hist(scores, bins=100)
-    plt.xlabel(score_name)
-    plt.ylabel("Count")
+    plt.figure(figsize=(10, 6))
+    ax = plt.gca()
+
+    # create a histogram
+    ax.hist(
+        scores,
+        bins=100,
+        color=score_color,
+        edgecolor="black",
+    )
+
+    # label the axes
+    plt.xlabel(score_name, fontweight="bold", size=12)
+    plt.ylabel("Count", fontweight="bold", size=12)
+
     plt.title(f"{score_name} Distribution")
-    plt.savefig(save_dir / f"{score_name}.pdf", bbox_inches="tight")
+
+    # add a grid in the background
+    ax.yaxis.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+    ax.set_axisbelow(True)  # place grid lines behind bars
+
+    # save as 600 DPI PNG in Results/figures
+    plt.savefig(
+        save_dir / f"{score_name}.pdf",
+        bbox_inches="tight",
+    )
+    plt.savefig(
+        save_dir / f"{score_name}.png",
+        dpi=600,
+        bbox_inches="tight",
+    )
 
     # Save score distribution
     fig_data = pd.DataFrame({score_name: scores})
@@ -77,14 +109,40 @@ def plot_similarity(
     save_name = save_dir / f"{reference_name.lower()}_{similarity_type}_similarity"
 
     # Plot diversity distribution
+    # create a figure and axis
     plt.clf()
-    plt.hist(max_similarities, bins=100)
-    plt.xlabel(f"Maximum {reference_name} {similarity_type.title()} Similarity")
-    plt.ylabel("Count")
+    plt.figure(figsize=(10, 6))
+    ax = plt.gca()
+
+    # create a histogram
+    ax.hist(max_similarities, bins=100, color="#CDE0F6", edgecolor="black")
+
+    # label the axes
+    plt.xlabel(
+        f"Maximum {reference_name} {similarity_type.title()} Similarity",
+        fontweight="bold",
+        size=12,
+    )
+    plt.ylabel("Count", fontweight="bold", size=12)
+
     plt.title(
         f"Maximum {reference_name} {similarity_type.title()} Similarity Distribution"
     )
-    plt.savefig(f"{save_name}.pdf", bbox_inches="tight")
+
+    # add a grid in the background
+    ax.yaxis.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+    ax.set_axisbelow(True)  # place grid lines behind bars
+
+    # save as 600 DPI PNG in Results/figures
+    plt.savefig(
+        f"{save_name}.pdf",
+        bbox_inches="tight",
+    )
+    plt.savefig(
+        f"{save_name}.png",
+        dpi=600,
+        bbox_inches="tight",
+    )
 
     # Save diversity distribution
     fig_data = pd.DataFrame({f"max_{similarity_type}_similarity": max_similarities})
@@ -115,17 +173,38 @@ def plot_reference_similarity(
     reference_file_name = reference_name.lower().replace(" ", "_")
 
     # Plot diversity distribution compared to train
+    # create a figure and axis
     plt.clf()
-    plt.hist(max_similarities, bins=100)
+    plt.figure(figsize=(10, 6))
+    ax = plt.gca()
+
+    # create a histogram
+    ax.hist(max_similarities, bins=100, color="#CDE0F6", edgecolor="black")
+
+    # label the axes
     plt.xlabel(
-        f"Maximum {similarity_type.title()} Similarity from Generated to {reference_name}"
+        f"Maximum {similarity_type.title()} Similarity from Generated to {reference_name}",
+        fontweight="bold",
+        size=12,
     )
-    plt.ylabel("Count")
+    plt.ylabel("Count", fontweight="bold", size=12)
+
     plt.title(
         f"{reference_name} Maximum {similarity_type.title()} Similarity Distribution"
     )
+
+    # add a grid in the background
+    ax.yaxis.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+    ax.set_axisbelow(True)  # place grid lines behind bars
+
+    # save as 600 DPI PNG in Results/figures
     plt.savefig(
         save_dir / f"{reference_file_name}_{similarity_type}_similarity.pdf",
+        bbox_inches="tight",
+    )
+    plt.savefig(
+        save_dir / f"{reference_file_name}_{similarity_type}_similarity.png",
+        dpi=600,
         bbox_inches="tight",
     )
 
@@ -152,13 +231,34 @@ def plot_reactions_counts(num_reactions: list[int], save_dir: Path) -> None:
     ]
 
     # Plot reaction counts
+    # create a figure and axis
     plt.clf()
-    plt.bar(reaction_nums, reaction_counts)
+    plt.figure(figsize=(10, 6))
+    ax = plt.gca()
+
+    # create a histogram
+    ax.bar(reaction_nums, reaction_counts, color="#CDE0F6", edgecolor="black")
     plt.xticks(reaction_nums)
-    plt.xlabel("Number of Reactions")
-    plt.ylabel("Count")
+
+    # label the axes
+    plt.xlabel("Number of Reactions", fontweight="bold")
+    plt.ylabel("Count", fontweight="bold")
     plt.title("Number of Reactions")
-    plt.savefig(save_dir / "reaction_numbers.pdf", bbox_inches="tight")
+
+    # add a grid in the background
+    ax.yaxis.grid(True, linestyle="--", alpha=0.7)
+    ax.set_axisbelow(True)  # place grid lines behind bars
+
+    # save as 600 DPI PNG in Results/figures
+    plt.savefig(
+        save_dir / "reaction_numbers.pdf",
+        bbox_inches="tight",
+    )
+    plt.savefig(
+        save_dir / "reaction_numbers.png",
+        dpi=600,
+        bbox_inches="tight",
+    )
 
     # Save reaction counts
     fig_data = pd.DataFrame(
@@ -186,7 +286,7 @@ def plot_reaction_usage(data: pd.DataFrame, save_dir: Path) -> None:
         for reaction in {int(reaction) for reaction in reaction_row.dropna()}
     )
 
-    reactions = sorted(reaction_counter) # ! We don't want it sorted
+    reactions = sorted(reaction_counter)  # ! We don't want it sorted
     # reactions = [p[0] for p in reaction_counter.most_common()]
     # reactions.reverse()
 
@@ -194,13 +294,34 @@ def plot_reaction_usage(data: pd.DataFrame, save_dir: Path) -> None:
     xticks = np.arange(len(reaction_counts))
 
     # Plot reaction usage
+    # create a figure and axis
     plt.clf()
-    plt.bar(xticks, reaction_counts)
+    plt.figure(figsize=(10, 6))
+    ax = plt.gca()
+
+    # create a histogram
+    ax.bar(xticks, reaction_counts, color="#CDE0F6", edgecolor="black")
     plt.xticks(ticks=xticks, labels=reactions, rotation=45)
-    plt.xlabel("Reaction")
-    plt.ylabel("Count (# molecules containing the reaction)")
+
+    # label the axes
     plt.title("Reaction Counts")
-    plt.savefig(save_dir / "reaction_counts.pdf", bbox_inches="tight")
+    plt.xlabel("Reaction", fontweight="bold")
+    plt.ylabel("Count (# molecules containing the reaction)", fontweight="bold")
+
+    # add a grid in the background
+    ax.yaxis.grid(True, linestyle="--", alpha=0.7)
+    ax.set_axisbelow(True)  # place grid lines behind bars
+
+    # save as 600 DPI PNG in Results/figures
+    plt.savefig(
+        save_dir / "reaction_counts.pdf",
+        bbox_inches="tight",
+    )
+    plt.savefig(
+        save_dir / "reaction_counts.png",
+        dpi=600,
+        bbox_inches="tight",
+    )
 
     # Save reaction usage
     fig_data = pd.DataFrame({"reaction": reactions, "count": reaction_counts})
@@ -232,13 +353,38 @@ def plot_fragment_usage(data: pd.DataFrame, save_dir: Path) -> None:
     fragments, fragment_counts = zip(*fragments_with_counts)
 
     # Plot fragment usage
+    # create a figure and axis
     plt.clf()
-    plt.scatter(np.arange(len(fragment_counts)), fragment_counts)
+    plt.figure(figsize=(10, 6))
+    ax = plt.gca()
 
-    plt.xlabel("Sorted Fragment Index")
-    plt.ylabel("Count (# molecules containing the fragment)")
+    # create a histogram
+    ax.scatter(
+        np.arange(len(fragment_counts)),
+        fragment_counts,
+        color="#CDE0F6",
+        edgecolor="black",
+    )
+
+    # label the axes
+    plt.xlabel("Sorted Fragment Index", fontweight="bold")
+    plt.ylabel("Count (# molecules containing the fragment)", fontweight="bold")
     plt.title("Fragment Counts")
-    plt.savefig(save_dir / "fragment_counts.pdf", bbox_inches="tight")
+
+    # add a grid in the background
+    ax.yaxis.grid(True, linestyle="--", alpha=0.7)
+    ax.set_axisbelow(True)  # place grid lines behind bars
+
+    # save as 600 DPI PNG in Results/figures
+    plt.savefig(
+        save_dir / "fragment_counts.pdf",
+        bbox_inches="tight",
+    )
+    plt.savefig(
+        save_dir / "fragment_counts.png",
+        dpi=600,
+        bbox_inches="tight",
+    )
 
     # Save fragment usage
     fig_data = pd.DataFrame({"fragment": fragments, "count": fragment_counts})
@@ -253,13 +399,20 @@ def assess_generated_molecules(args: Args) -> None:
     # Count molecules
     print(f"Number of molecules = {len(data):,}")
 
-    if False:
+    if True:
         print("Plotting score distribution...")
 
-        # Score distribution
-        plot_scores(scores=data[args.score_column], save_dir=args.save_dir)
+        is_random = "random" in str(args.data_path).lower()
 
-    if False:
+        # Score distribution
+        plot_scores(
+            scores=data[args.score_column],
+            save_dir=args.save_dir,
+            score_name="Score",
+            score_color="#E84147" if is_random else "#56AE72",
+        )
+
+    if True:
         print("Plotting similarity within generated molecules...")
 
         # Similarity within generated molecules
@@ -269,7 +422,7 @@ def assess_generated_molecules(args: Args) -> None:
             save_dir=args.save_dir,
         )
 
-    if False:
+    if True:
         if args.reference_paths is not None:
             for reference_path in args.reference_paths:
                 # Load reference molecules
@@ -296,13 +449,13 @@ def assess_generated_molecules(args: Args) -> None:
             num_reactions=data["num_reactions"], save_dir=args.save_dir
         )
 
-    if False:
+    if True:
         print("Plotting reaction usage...")
 
         # Usage of reactions
         plot_reaction_usage(data=data, save_dir=args.save_dir)
 
-    if False:
+    if True:
         # Usage of fragments
         plot_fragment_usage(data=data, save_dir=args.save_dir)
 

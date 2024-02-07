@@ -191,16 +191,16 @@ def build_chemprop_model(dataset_type: str,
         properties=train_properties,
         shuffle=True
     )
-    # val_data_loader = build_chemprop_data_loader(
-    #     smiles=val_smiles,
-    #     fingerprints=val_fingerprints,
-    #     properties=val_properties
-    # )
-    # test_data_loader = build_chemprop_data_loader(
-    #     smiles=test_smiles,
-    #     fingerprints=test_fingerprints,
-    #     properties=test_properties
-    # )
+    val_data_loader = build_chemprop_data_loader(
+        smiles=val_smiles,
+        fingerprints=val_fingerprints,
+        properties=val_properties
+    )
+    test_data_loader = build_chemprop_data_loader(
+        smiles=test_smiles,
+        fingerprints=test_fingerprints,
+        properties=test_properties
+    )
 
     # Build model
     model = MoleculeModel(args)
@@ -227,7 +227,7 @@ def build_chemprop_model(dataset_type: str,
             n_iter=n_iter
         )
 
-        # val_probs = chemprop_predict(model=model, data_loader=val_data_loader)
+        val_probs = chemprop_predict(model=model, data_loader=val_data_loader)
 
         if dataset_type == 'classification':
             val_score = average_precision_score(val_properties, val_probs)
@@ -282,11 +282,8 @@ def train_model(args: Args) -> None:
     else:
         fingerprints = None
 
-    DO_CROSS_VALIDATION = False
-
     # Set up cross-validation
-    # num_folds = 10
-    num_folds = 1
+    num_folds = 10
     indices = np.tile(np.arange(num_folds), 1 + len(data) // num_folds)[:len(data)]
     random = Random(0)
     random.shuffle(indices)
@@ -298,14 +295,11 @@ def train_model(args: Args) -> None:
     for model_num in trange(args.num_models, desc='cross-val'):
         print(f'Model {model_num}')
 
-        test_mask = np.zeros(np.shape(indices))
-        val_mask = np.zeros(np.shape(indices))
-        if DO_CROSS_VALIDATION:
-            test_index = model_num
-            val_index = (model_num + 1) % num_folds
+        test_index = model_num
+        val_index = (model_num + 1) % num_folds
 
-            test_mask = indices == test_index
-            val_mask = indices == val_index
+        test_mask = indices == test_index
+        val_mask = indices == val_index
 
         train_mask = ~(test_mask | val_mask)
 
