@@ -1,0 +1,128 @@
+---
+title: Molecular Docking Simulation
+subtitle: Ayush Noori
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include = FALSE}
+# knitr::opts_chunk$set(eval = FALSE)
+```
+
+# Dependencies
+
+Load requisite packages and define directories. Note that this script may also use my personal utilities package `brainstorm`, which can be downloaded via `devtools::install_github("ayushnoori/brainstorm")`.
+
+```{r load-packages, message=FALSE, warning=FALSE}
+# data manipulation
+library(data.table)
+library(purrr)
+library(magrittr)
+
+# relative file paths
+base_dir = "../GEM 2024/generations_iclr_post" # edit path
+library(here)
+
+# data visualization
+library(ggplot2)
+
+# utility functions
+library(brainstorm)
+
+# cheminformatics tools
+# remotes::install_github('jasenfinch/cheminf')
+# library(cheminf)
+# remotes::install_github("schymane/RChemMass")
+# library(RChemMass)
+```
+
+Read files.
+
+```{r read-files}
+# read molecular analysis
+mcts_mols = fread(here(base_dir, "mcts_chemprop_rdkit", "molecules.csv"))
+random_mols = fread(here(base_dir, "random", "molecules_random.csv"))
+
+# print quantiles
+quantile(mcts_mols$chemprop_rdkit_ensemble_preds)
+quantile(random_mols$chemprop_rdkit_ensemble_preds)
+```
+
+Get top 5 molecules and bottom 5 molecules by average DRD2 score.
+
+```{r top-d2r}
+# sort by d2r
+mcts_mols = mcts_mols %>%
+  .[, d2r_sum := chemprop_rdkit_model_drd2_model_0_preds + chemprop_rdkit_model_drd2_model_1_preds] %>%
+  .[order(-d2r_sum)]
+
+random_mols = random_mols %>%
+  .[, d2r_sum := chemprop_rdkit_model_drd2_model_0_preds + chemprop_rdkit_model_drd2_model_1_preds] %>%
+  .[order(-d2r_sum)]
+
+# get top molecules
+top_5 = mcts_mols[1:5, smiles]
+bottom_5 = mcts_mols[(nrow(mcts_mols)-4):nrow(mcts_mols), smiles]
+
+# docking results from SeamDock using AutoDock Vina
+top_5_binding_affinity = c(-11, -11, -11.6, -11.9, -12)
+bottom_5_binding_affinity = c(-6, -6, -7.4, -7.1, -5.3)
+```
+
+SMILES structure of risperidone retrieved from DrugBank [here](https://go.drugbank.com/drugs/DB00734). Create plot of molecular docking simulation results.
+
+```{r plot-sim}
+# create docking results
+sim_res = data.table(
+  Score = c(-11.4,top_5_binding_affinity, bottom_5_binding_affinity),
+  Label = c("Risperidone", rep("High Scoring", 5), rep("Low Scoring", 5))
+) %>%
+  .[, Label := factor(Label, levels = c("Risperidone", "High Scoring", "Low Scoring"))]
+
+# compute mean, SD, and SE by Label
+summary_stats = sim_res[, .(
+  Mean = mean(Score),
+  SD = sd(Score),
+  SE = sd(Score) / sqrt(.N)  # Standard Error
+), by = Label]
+
+# create plot
+p = ggplot(summary_stats, aes(x = Label, y = Mean)) +
+  geom_bar(stat = "identity", aes(fill = Label), color = "black") +
+  scale_fill_manual(values = c("#DDD5E9", "#C7E5F8", "#FFCFD1")) +
+  # scale_fill_manual(values = c("#7E5DAC", "#269BE3", "#FF474E")) +
+  geom_point(data = sim_res, aes(y = Score), size = 3, shape = 21, color = "black", fill = "white") +
+  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE), width = 0.2, color = "black", linewidth = 0.8) +
+  scale_y_reverse(expand = expansion(c(0, 0.05))) + 
+  labs(x = "Category", y = "Binding Affinity (kcal/mol)") +
+  theme_bw() +
+  theme(
+    axis.title.y = element_text(face = "bold", size = 12),
+    axis.title.x = element_blank(),
+    axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 12, face = "bold", color = "black"),
+    legend.position = "none"
+  )
+
+# save plot
+ggsave(here(base_dir, "molecular_simulation.png"), p, dpi = 900, height = 6, width = 5)
+```
+
+Read other statistics.
+
+```{r read-stats}
+mcts_dir = here(base_dir, "mcts_chemprop_rdkit", "chemprop_rdkit_ensemble_preds")
+
+# read Tversky
+b3db_tversky = fread(here(mcts_dir, "b3db_classification_preprocessed_tversky_similarity.csv"))
+# nrow(b3db_tversky[max_tversky_similarity < 0.9])
+excape_tversky = fread(here(mcts_dir, "drd2_binding_data_tversky_similarity.csv"))
+
+# read Tanimoto
+tanimoto = fread(here(mcts_dir, "internal_tanimoto_similarity.csv"))
+# nrow(tanimoto[max_tanimoto_similarity < 0.8])
+```
