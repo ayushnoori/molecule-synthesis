@@ -11,7 +11,7 @@ __pycache__
 
 # ignore files in Data subdirectories
 Data/*
-Data/*/*
+Data/**/*
 
 # unignore README files with .md extensions
 !Data/*/README.md
