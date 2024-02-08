@@ -42,6 +42,8 @@ def map_fragments_to_scores(args: Args) -> None:
 
         individual_scores.append(scores)
 
+    individual_scores.append()
+
     # Average scores
     scores = functools.reduce(lambda x, y: x * y, individual_scores)
 
