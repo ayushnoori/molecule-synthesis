@@ -1,3 +1,4 @@
+.vscode
 .Rproj.user
 .Rhistory
 .RData
@@ -14,6 +15,7 @@ Data/*
 Data/**/*
 
 # unignore README files with .md extensions
+!Data/README.md
 !Data/*/README.md
 !Data/synthesis_data
 # !Data/synthesis_data/*
@@ -23,6 +25,7 @@ Results/*
 Results/*/*
 
 # unignore README files with .md extensions
+!Results/README.md
 !Results/*/README.md
 
 # ignore lightning logs

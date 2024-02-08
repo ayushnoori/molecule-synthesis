@@ -1,6 +1,0 @@
-{
-  "python.defaultInterpreterPath": "./experiment/conda_env/bin/python",
-  "python.analysis.diagnosticSeverityOverrides": {
-    "reportUnknownMemberType": "none"
-  }
-}
