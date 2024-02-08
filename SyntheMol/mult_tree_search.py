@@ -23,6 +23,100 @@ from reactions import Reaction, set_allowed_reaction_smiles
 from real_reactions import REAL_REACTIONS
 from synnet_reactions import SYNNET_REACTIONS
 from train_model import sklearn_predict
+import warnings
+
+from admet_ai import ADMETModel
+from dataclasses import dataclass
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+@dataclass
+class DatasetMetadata:
+    admet_ai_base_key: str
+    multiplier: float
+
+
+admet_ai_dataset_metadata: list[DatasetMetadata] = [
+    # Absorption
+    DatasetMetadata("HIA_Hou", 1.0),  # Good
+    DatasetMetadata("Pgp_Broccatelli", -1.0),  # Bad
+    DatasetMetadata("Bioavailability_Ma", 1.0),  # Good
+    DatasetMetadata("PAMPA_NCATS", 1.0),  # Good
+    # Distribution
+    # DatasetMetadata("BBB_Martins", 1.0),  # ! CONSIDER TAKING OUT BC OF OTHER MODEL
+    # Metabolism
+    # DatasetMetadata(
+    #     "CYP1A2_Veith", 0
+    # ),  # Unclear - https://pubmed.ncbi.nlm.nih.gov/18473749/
+    # DatasetMetadata(
+    #     "CYP2C19_Veith", 0
+    # ),  # Unclear - https://pubmed.ncbi.nlm.nih.gov/18473749/
+    # DatasetMetadata(
+    #     "CYP2C9_Veith", 0
+    # ),  # Unclear - https://pubmed.ncbi.nlm.nih.gov/18473749/
+    # DatasetMetadata(
+    #     "CYP2D6_Veith", 0
+    # ),  # Unclear - https://pubmed.ncbi.nlm.nih.gov/18473749/
+    # DatasetMetadata(
+    #     "CYP3A4_Veith", 0
+    # ),  # Unclear - https://pubmed.ncbi.nlm.nih.gov/18473749/
+    # DatasetMetadata("CYP2C9_Substrate_CarbonMangels", 0),  # Unclear
+    # DatasetMetadata("CYP2D6_Substrate_CarbonMangels", 0),  # Unclear
+    # DatasetMetadata(
+    #     "CYP3A4_Substrate_CarbonMangels", 0
+    # ),  # Unclear - https://pubmed.ncbi.nlm.nih.gov/18473749/
+    # Excretion - No binary excretion datasets
+    # Toxicity
+    DatasetMetadata("Skin_Reaction", -1.0),  # Bad
+    DatasetMetadata("Carcinogens_Lagunin", -1.0),  # Bad
+    DatasetMetadata("hERG", -1.0),  # Bad - Blocks hERG
+    DatasetMetadata("AMES", -1.0),  # Bad
+    DatasetMetadata("DILI", -1.0),  # Bad
+    DatasetMetadata("ClinTox", -1.0),  # Bad - Likelihood of toxicity
+]
+
+min_total_score = sum(
+    list(
+        [
+            min(dataset_metadata.multiplier, 0)
+            for dataset_metadata in admet_ai_dataset_metadata
+        ]
+    )
+)
+
+max_total_score = sum(
+    list(
+        [
+            max(0, dataset_metadata.multiplier)
+            for dataset_metadata in admet_ai_dataset_metadata
+        ]
+    )
+)
+
+
+def normalize_score(score: float) -> float:
+    return (score - min_total_score) / (max_total_score - min_total_score)
+
+
+admet_ai_model = ADMETModel()
+
+
+def calculate_admet_score(smiles: str) -> float:
+    predictions: dict[str, float] = admet_ai_model.predict(smiles=smiles)
+
+    raw_score = sum(
+        list(
+            [
+                dataset_metadata.multiplier
+                * predictions[dataset_metadata.admet_ai_base_key]
+                for dataset_metadata in admet_ai_dataset_metadata
+                if dataset_metadata.admet_ai_base_key in predictions
+            ]
+        )
+    )
+
+    final_score = normalize_score(raw_score)  # Normalize to 0 to 1
+    return final_score
 
 
 class Args(Tap):
@@ -391,8 +485,6 @@ class TreeSearcher:
         """Computes the MCTS score of a TreeNode."""
         mcts_score = node.Q() + node.U(n=total_visit_count)
 
-        print("STEP 5.1.1")
-
         # Reduce MCTS score when node includes a common fragment
         if self.fragment_diversity and node.num_fragments > 0:
             max_reagent_count = max(self.reagent_counts[reagent_id] for reagent_id in node.unique_reagents)
@@ -415,29 +507,22 @@ class TreeSearcher:
             print(f'Score = {node.P}')
             print()
 
-        print("STEP 1")
-
         # Stop the search if we've reached the maximum number of reactions
         if node.num_reactions >= self.max_reactions:
             return node.P
 
-        print("STEP 2")
         # If this node has already been visited and the children have been stored, get its children from the dictionary
         if node in self.node_to_children:
             new_nodes = self.node_to_children[node]
 
-            print("STEP 3")
         # Otherwise, expand the node to get its children
         else:
-            print("STEP 3.1")
             # Expand the node both by running reactions with the current fragments and adding new fragments
             new_nodes = self.expand_node(node=node)
-            print("STEP 3.2")
 
             # Check the node map and merge with an existing node if available
             new_nodes = [self.node_map.get(new_node, new_node) for new_node in new_nodes]
 
-            print("STEP 3.3")
             # Add nodes with complete molecules to the node map
             for new_node in new_nodes:
                 if new_node.num_fragments == 1 and new_node not in self.node_map:
@@ -445,7 +530,6 @@ class TreeSearcher:
                     self.node_map[new_node] = new_node
                     self.reagent_counts.update(new_node.unique_reagents)
 
-            print("STEP 3.4")
             # Save the number of children in order to maintain a total node count
             node.num_children = len(new_nodes)
 
@@ -453,7 +537,6 @@ class TreeSearcher:
             if self.store_nodes:
                 self.node_to_children[node] = new_nodes
 
-        print("STEP 4")
         # If no new nodes were generated, return the current node's value
         if len(new_nodes) == 0:
             if node.num_fragments == 1:
@@ -461,7 +544,6 @@ class TreeSearcher:
             else:
                 raise ValueError('Failed to expand a partially expanded node.')
 
-        print("STEP 5")
         # Select a node based on the search type
         if self.search_type == 'random':
             selected_node = self.random_choice(new_nodes)
@@ -474,26 +556,16 @@ class TreeSearcher:
             selected_node = self.random_choice(sorted_nodes[:top_k])
 
         elif self.search_type == 'mcts':
-            print("STEP 5.1")
             total_visit_count = sum(new_node.N for new_node in new_nodes)
-            print(f"STEP 5.2: {len(new_nodes)}")
             # TODO: incorporate fragment counts into greedy search?
             selected_node = max(
-                [
-                    self.compute_mcts_score(new_node, total_visit_count)
-                    for new_node in tqdm(new_nodes, "new_nodes")
-                ]
+                tqdm(new_nodes),
+                key=partial(self.compute_mcts_score, total_visit_count=total_visit_count)
             )
-            # selected_node = max(
-            #     new_nodes,
-            #     key=partial(self.compute_mcts_score, total_visit_count=total_visit_count)
-            # )
-            print("STEP 6")
 
         else:
             raise ValueError(f'Search type "{self.search_type}" is not supported.')
 
-        print("STEP 6")
         # Check the node map and merge with an existing node if available
         if selected_node in self.node_map:
             selected_node = self.node_map[selected_node]
@@ -501,14 +573,11 @@ class TreeSearcher:
         else:
             selected_node.node_id = len(self.node_map)
             self.node_map[selected_node] = selected_node
-        print("STEP 7")
 
         # Unroll the selected node
         v = self.rollout(node=selected_node)
         selected_node.W += v
         selected_node.N += 1
-
-        print("STEP 8")
 
         return v
 
@@ -520,7 +589,6 @@ class TreeSearcher:
         :return: A list of TreeNode objects sorted from highest to lowest reward.
         """
         for rollout_num in trange(self.n_rollout):
-            print(f"ROLLING OUT {rollout_num}")
             self.rollout_num = rollout_num + 1
 
             if self.debug:
@@ -655,6 +723,7 @@ def create_model_scoring_fn(model_path: Path,
                 model(batch=[[smiles]], features_batch=fingerprint).item() for model in models
             ]))
     else:
+        raise ValueError('WE SHOULD ALWAYS USE CHEMPROP')
         models = []
         for model_path in model_paths:
             with open(model_path, 'rb') as f:
@@ -674,8 +743,12 @@ def create_model_scoring_fn(model_path: Path,
             else:
                 fingerprint = None
 
-            model_score = model_scorer(smiles=smiles, fingerprint=fingerprint)
+            chemprop_model_score = model_scorer(smiles=smiles, fingerprint=fingerprint) # 0 to 1
+            # admet_ai_score = calculate_admet_score(smiles) # 0 to 1
+            model_score = chemprop_model_score
+            # model_score = chemprop_model_score * admet_ai_score
         else:
+            raise ValueError("WE SHOULD NOT LOAD CACHE, DELETE --fragment_to_model_score_path FROM COMMAND OPTIONS")
             model_score = fragment_to_model_score[smiles]
 
         if binarize_scoring > 0:

@@ -241,10 +241,9 @@ def predict_ensemble(smiles: list[str],
     model_names = [Path(model_path).stem for model_path in model_paths] + ['admet']
 
     if average_preds:
-        preds = np.mean(preds, axis=0)
-        weighted_preds = preds * 2 / 3 + admet_preds * 1 / 3
-        model_names + ['mean']
-        full_preds = np.vstack((full_preds, weighted_preds))
+        mult_preds = np.prod(full_preds, axis=0)
+        model_names += ['mult_comb']
+        full_preds = np.vstack((full_preds, mult_preds))
 
     return (model_names, full_preds)
 
